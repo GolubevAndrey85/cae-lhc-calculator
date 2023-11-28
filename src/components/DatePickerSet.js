@@ -25,8 +25,8 @@ const ExampleSet = (props) => {
     props.setSecondDate(date, i);
   }
 
-  const [firstDate, setFirstDate] = useState(new Date());
-  const [secondDate, setSecondDate] = useState(new Date());
+  const [firstDate, setFirstDate] = useState(props.startDate);
+  const [secondDate, setSecondDate] = useState(props.endDate);
 
   return (
     <div key={props.i}>
