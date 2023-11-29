@@ -3,48 +3,59 @@ import Display from "./Display";
 import Keypad from "./Keypad";
 import ExampleSet from "./DatePickerSet";
 import Moment from 'moment';
+import BasicTable2 from "./Table2";
 
 const Calculator = (props) => {
 
-    const [displayValue, setDisplayValue] = useState("");
+    const defaultDOB = new Date('1970-07-01');
+    const defaultAppDate = new Date('2023-07-01');
+    const get30BirthDate = (dob) => {
+        let dob30 = new Date(dob);
+        dob30.setFullYear(dob.getFullYear() + 30);
+        return dob30;
+    }
+
+    // const [displayValue, setDisplayValue] = useState("");
     const [limit, setLimit] = useState(1);
-    const [dob, setDob] = useState(new Date('1991-07-01'));
-    const [appDate, setAppDate] = useState(new Date('2023-07-01'));
+    const [dob, setDob] = useState(defaultDOB);
+    const [appDate, setAppDate] = useState(defaultAppDate);
     const [prevCoverDates, setPrevCoverDates] = useState(new Map());
     const [cae, setCae] = useState(30);
-    const [validPrevCoverYears, setValidPrevCoverYears] = useState(0);
-    const [years30Dob, setYears30Dob] = useState(new Date());
+    // const [validPrevCoverYears, setValidPrevCoverYears] = useState(0);
+    const [years30Dob, setYears30Dob] = useState(get30BirthDate(defaultDOB));
     const [caeHistory, setCaeHistory] = useState([]);
 
-    const handleClick = (value) => {
-        setDisplayValue(displayValue + value);
+
+    const handleAddRemoveCoverDates = (value) => {
+        // setDisplayValue(displayValue + value);
+        if (limit === 0) return;
         setLimit(limit + value);
         if (value < 0) {
-            prevCoverDates.delete(limit - 1);
+            setPrevCoverDates(prevCoverDates.delete(limit - 1));
         }
     };
 
-    const calculateAge = (dob, appDate) => {
-        let applicationDate = new Date(appDate);
-        let birthDate = new Date(dob);
-        if (applicationDate.getMonth() >= 6) {
-            applicationDate.setMonth(6);
-            applicationDate.setDate(1);
-            applicationDate.setFullYear(applicationDate.getFullYear());
-        } else {
-            applicationDate.setMonth(6);
-            applicationDate.setDate(1);
-            applicationDate.setFullYear(applicationDate.getFullYear() - 1);
-        }
-        // console.log('appDat2e: ', applicationDate);
-        let age_now = applicationDate.getFullYear() - birthDate.getFullYear();
-        let m = applicationDate.getMonth() - birthDate.getMonth();
-        if (m < 0 || (m === 0 && applicationDate.getDate() < birthDate.getDate())) {
-            age_now--;
-        }
-        // console.log('age_now0:' + age_now);
-        return age_now;
-    }
+
+    // const calculateAge = (dob, appDate) => {
+    //     let applicationDate = new Date(appDate);
+    //     let birthDate = new Date(dob);
+    //     if (applicationDate.getMonth() >= 6) {
+    //         applicationDate.setMonth(6);
+    //         applicationDate.setDate(1);
+    //         applicationDate.setFullYear(applicationDate.getFullYear());
+    //     } else {
+    //         applicationDate.setMonth(6);
+    //         applicationDate.setDate(1);
+    //         applicationDate.setFullYear(applicationDate.getFullYear() - 1);
+    //     }
+    //     let age_now = applicationDate.getFullYear() - birthDate.getFullYear();
+    //     let m = applicationDate.getMonth() - birthDate.getMonth();
+    //     if (m < 0 || (m === 0 && applicationDate.getDate() < birthDate.getDate())) {
+    //         age_now--;
+    //     }
+    //     return age_now;
+    // }
+
 
     const calculateDiffInYears = (start, end) => {
         let diff = end.getFullYear() - start.getFullYear();
@@ -55,19 +66,17 @@ const Calculator = (props) => {
         return diff;
     }
 
-    useEffect(() => {
-        let age_now = calculateAge(dob, appDate);
-        setCae(age_now - validPrevCoverYears < 30 ? 30 : age_now - validPrevCoverYears);
-    }, [dob, appDate, validPrevCoverYears]);
 
     const handleDOB = (date, i) => {
-        get30BirthDate(date);
+        setYears30Dob(get30BirthDate(date));
         setDob(date);
     }
+
 
     const handleAppDate = (date, i) => {
         setAppDate(date);
     }
+
 
     const handleCoverStartDate = (date, i) => {
         let temp = prevCoverDates;
@@ -77,9 +86,9 @@ const Calculator = (props) => {
         } else {
             temp.set(i, [new Date(date), null]);
         }
-        // temp.forEach((v, k) => console.log('i: ' + k + ' start: ' + v[0] + ' end: ' + v[1] + '\n'));
         setPrevCoverDates(new Map(temp));
     }
+
 
     const handleCoverEndtDate = (date, i) => {
         let temp = prevCoverDates;
@@ -89,12 +98,12 @@ const Calculator = (props) => {
         } else {
             temp.set(i, [null, new Date(date)]);
         }
-        // temp.forEach((v, k) => console.log('i: ' + k + ' start: ' + v[0] + ' end: ' + v[1] + '\n'));
         setPrevCoverDates(new Map(temp));
     }
 
+
     const getNextFinYearStartDate = (date) => {
-        let nextDate = new Date(date);
+        const nextDate = new Date(date);
         if (nextDate.getMonth() >= 6) {
             nextDate.setMonth(6);
             nextDate.setDate(1);
@@ -107,27 +116,54 @@ const Calculator = (props) => {
         return nextDate;
     }
 
+
+    const getPrevFinYearStartDate = (date) => {
+        const nextDate = new Date(date);
+        if (nextDate.getMonth() >= 6) {
+            nextDate.setMonth(6);
+            nextDate.setDate(1);
+            nextDate.setFullYear(nextDate.getFullYear());
+        } else {
+            nextDate.setMonth(6);
+            nextDate.setDate(1);
+            nextDate.setFullYear(nextDate.getFullYear() - 1);
+        }
+        return nextDate;
+    }
+
+
+    // useEffect(() => {
+    //     let age_now = calculateAge(dob, appDate);
+    //     setCae(age_now - validPrevCoverYears < 30 ? 30 : age_now - validPrevCoverYears);
+    // }, [dob, appDate, validPrevCoverYears]);
+
     useEffect(() => {
-        let covered = 0;
+
+    }, []);
+
+
+    useEffect(() => {
+        // let covered = 0;
         setCaeHistory([]);
         let cae = 30;
-        let caeHistory = [{ cae: cae, date: dob }];
-        caeHistory.push({ cae: cae, date: years30Dob });
-        let nextFinYear = getNextFinYearStartDate(years30Dob);
-        if (years30Dob.getDate() === 1 && years30Dob.getMonth() === 6) {
-            cae++;
-        }
-        caeHistory.push({ cae: cae, date: nextFinYear });
-        let last10YearsDate = null;
+        let id = 0;
+        var last10YearsDate = null;
         let isCovered = false;
-        let incrementCAE = true;
+        var incrementCAE = true;
+        var nextFinYear = getNextFinYearStartDate(years30Dob);
+        var caeHistory = [
+            { id: ++id, cae: cae, date: Moment(dob).format('DD MMM YYYY'), lhc: (cae - 30) * 2 },
+            { id: ++id, cae: cae, date: Moment(years30Dob).format('DD MMM YYYY'), lhc: (cae - 30) * 2 }
+        ];
+        if (years30Dob.getDate() === 1 && years30Dob.getMonth() === 6) {
+            caeHistory.push({ id: ++id, cae: cae++, date: Moment(new Date(nextFinYear)).format('DD MMM YYYY'), lhc: (cae - 30) * 2 });
+        }
+
         for (let i = 0; i < 50; i++) {
             nextFinYear = getNextFinYearStartDate(nextFinYear);
-            let coverDatesFind = Array.from(prevCoverDates).find(v => v[1][0] && v[1][1] && v[1][0] < nextFinYear && nextFinYear < v[1][1]);
-            console.log(`----- coverDates: ${coverDatesFind}`);
+            const coverDatesFind = Array.from(prevCoverDates).find(v => v[1][0] && v[1][1] && v[1][0] < nextFinYear && nextFinYear < v[1][1]);
             if (coverDatesFind) {
                 let coverDates = coverDatesFind[1];
-                console.log(`----- coverDates: ${coverDates[0]}, ${coverDates[1]}`);
                 isCovered = isCovered || (coverDates[0] && coverDates[1] && coverDates[0] < nextFinYear && nextFinYear < coverDates[1]);
                 if (isCovered && calculateDiffInYears(coverDates[0], coverDates[1]) >= 10) {
                     cae = 30;
@@ -141,49 +177,43 @@ const Calculator = (props) => {
                 incrementCAE = true;
             }
             if (!isCovered && incrementCAE) {
-                cae = cae + 1;
+                cae++;
             }
             isCovered = false;
-            caeHistory.push({ cae: cae, date: nextFinYear });
+            caeHistory.push({ id: ++id, cae: cae, date: Moment(nextFinYear).format('DD MMM YYYY'), lhc: (cae - 30) * 2 });
         }
-        caeHistory.forEach(h => console.log(`cae: ${h.cae}, date: ${Moment(h.date).format('DD MMM YYYY')}\n`));
+        //  caeHistory.forEach(h => console.log(`id: ${h.id}, cae: ${h.cae}, lhc: ${h.lhc}, date: ${Moment(h.date).format('DD MMM YYYY')}\n`));
+        setCaeHistory(caeHistory);
+        const prevFinYear = getPrevFinYearStartDate(appDate);
+        const dataAtAppDate = Array.from(caeHistory).find(v => v.date === Moment(prevFinYear).format('DD MMM YYYY'));
+        console.log(`---------> CAE app date: ${dataAtAppDate}`);
+        setCae(dataAtAppDate?.cae);
+    }, [prevCoverDates, dob, appDate, years30Dob]);
 
-        prevCoverDates.forEach((v, k) => {
-            let yearsCovered = v[0] && v[1] && v[1] > years30Dob && calculateAge(v[0], v[1]);
-            if (yearsCovered && yearsCovered >= 1) {
-                covered = covered + yearsCovered;
-            }
-        });
-        setValidPrevCoverYears(covered);
-    }, [prevCoverDates]);
 
-    const get30BirthDate = (dob) => {
-        let dob30 = new Date(dob);
-        dob30.setFullYear(dob.getFullYear() + 30);
-        console.log(`=== 30 birthday: {0}`, new Date(dob30));
-        setYears30Dob(dob30);
-        setCaeHistory([[dob30, 30]]);
-        return dob30;
-    }
-
-    const prevCoverDetails = [];
     const renderPickers = (limit) => {
+        const defaultStartDate = '2005-01-01';
+        const defaultEndDate = '2010-01-01';
+        const prevCoverDetails = [];
         for (let i = 0; i < limit; i++) {
             prevCoverDetails.push(
                 <div key={i}>
-                    <ExampleSet limit={limit} i={i} setFirstDate={handleCoverStartDate} setSecondDate={handleCoverEndtDate} startDate={new Date('2005-01-01')} endDate={new Date('2010-01-01')} />
+                    <ExampleSet limit={limit} i={i} setFirstDate={handleCoverStartDate} setSecondDate={handleCoverEndtDate} startDate={new Date(defaultStartDate)} endDate={new Date(defaultEndDate)} />
                 </div>
             );
         }
+        // setPrevCoverDates(prevCoverDetails);
         return prevCoverDetails;
     }
+
 
     return (
         <div className="calculator">
             <Display value={cae} dob30={years30Dob} />
             <ExampleSet limit={1} setFirstDate={handleDOB} setSecondDate={handleAppDate} startDate={dob} endDate={appDate} />
-            <Keypad onClick={handleClick} />
+            <Keypad onClick={handleAddRemoveCoverDates} />
             <div>{renderPickers(limit)}</div>
+            <div style={{ width: '30%' }}><BasicTable2 data={caeHistory} /></div>
         </div>
     );
 }
