@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { DataGrid } from '@mui/x-data-grid';
+import Moment from 'moment';
 
 const columns = [
     { field: 'id', headerName: '#', width: 50 },
@@ -9,6 +10,7 @@ const columns = [
   ];
 
 const BasicTable2 = (props) => {
+  // props.data.forEach(h => console.log(`in table === id: ${h.id}, cae: ${h.cae}, lhc: ${h.lhc}, date: ${Moment(h.date).format('DD MMM YYYY')}\n`));
     return (
         <div style={{ height: 'auto', width: '100%' }}>
           <DataGrid
