@@ -7,8 +7,8 @@ import BasicTable2 from "./Table2";
 
 const Calculator = (props) => {
 
-    const defaultDOB = new Date('1970-07-01');
-    const defaultAppDate = new Date('2023-07-01');
+    const defaultDOB = new Date('1970-08-01');
+    const defaultAppDate = new Date('2023-09-01');
     const defaultStartDate = '2005-01-01';
     const defaultEndDate = '2010-01-01';
     const get30BirthDate = (dob) => {
@@ -116,17 +116,17 @@ const Calculator = (props) => {
         setCaeHistory([]);
         let cae = 30;
         let id = 0;
-        var last10YearsDate = null;
+        var lastDayOf10PlusYearsCover = null;
         let isCovered = false;
         var incrementCAE = true;
         var nextFinYear = getNextFinYearStartDate(years30Dob);
         var caeHistory = [
-            { id: ++id, cae: cae, date: Moment(dob).format('DD MMM YYYY'), lhc: (cae - 30) * 2 },
-            { id: ++id, cae: cae, date: Moment(years30Dob).format('DD MMM YYYY'), lhc: (cae - 30) * 2 }
+            { id: ++id, cae: cae, date: Moment(dob).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, dob) },
+            { id: ++id, cae: cae, date: Moment(years30Dob).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, years30Dob) }
         ];
 
         if (years30Dob.getDate() === 1 && years30Dob.getMonth() === 6) {
-            caeHistory.push({ id: ++id, cae: cae++, date: Moment(new Date(nextFinYear)).format('DD MMM YYYY'), lhc: (cae - 30) * 2 });
+            caeHistory.push({ id: ++id, cae: cae++, date: Moment(new Date(nextFinYear)).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, nextFinYear) });
         }
 
         console.log(`prev cover hist size ${prevCoverDates.size}`);
@@ -147,26 +147,35 @@ const Calculator = (props) => {
             } else {
                 coverDatesFinal = coverDatesFind && coverDatesFind[0] && coverDatesFind[0][1];
             }
-            coverDatesFinal?.forEach(d => console.log(`coverDatesFinal[0]: ${Moment(new Date(coverDatesFinal[0])).format('DD MMM YYYY')}, coverDatesFinal[1]: ${Moment(new Date(coverDatesFinal[1])).format('DD MMM YYYY')}`));
+            coverDatesFinal?.forEach(() => console.log(`coverDatesFinal[0]: ${Moment(new Date(coverDatesFinal[0])).format('DD MMM YYYY')}, coverDatesFinal[1]: ${Moment(new Date(coverDatesFinal[1])).format('DD MMM YYYY')}`));
             if (coverDatesFinal) {
-                const coverDates = coverDatesFinal;
-                isCovered = isCovered || (coverDates[0] && coverDates[1] && coverDates[0] < nextFinYear && nextFinYear < coverDates[1]);
-                if (isCovered && calculateDiffInYears(coverDates[0], coverDates[1]) >= 10) {
+                isCovered = coverDatesFinal[0] && coverDatesFinal[1] && coverDatesFinal[0] < nextFinYear && nextFinYear < coverDatesFinal[1];
+                // Holding for 10+ years
+                if (isCovered && calculateDiffInYears(coverDatesFinal[0], coverDatesFinal[1]) >= 10) {
                     cae = 30;
-                    last10YearsDate = coverDates[1];
+                    lastDayOf10PlusYearsCover = coverDatesFinal[1];
                     incrementCAE = false;
                 }
             }
-            if (last10YearsDate && calculateDiffInYears(last10YearsDate, nextFinYear) >= 3) {
+            // Hold for 10+ years, but cancelled and gap is > 3 years
+            if (lastDayOf10PlusYearsCover && calculateDiffInYears(lastDayOf10PlusYearsCover, nextFinYear) >= 3) {
                 cae = 30;
-                last10YearsDate = null;
+                lastDayOf10PlusYearsCover = null;
                 incrementCAE = true;
             }
+            
+            // !isCovered - Your loading % will lock-in when you insure yourself with an eligible policy. It will not go up by another 2% every year as long as you are holding cover.
+            // https://fairhealthcare.com.au/lifetime-health-cover-loading-explained/
+            // But ChatGPT says LHC is decreasing 2% per year since joining Hospital insurance
             if (!isCovered && incrementCAE) {
                 cae++;
+            } else if (isCovered) {
+                cae--;
             }
+            if (cae < 30) cae = 30;
+            if (cae > 70) cae = 70;
             isCovered = false;
-            caeHistory.push({ id: ++id, cae: cae, date: Moment(nextFinYear).format('DD MMM YYYY'), lhc: (cae - 30) * 2 });
+            caeHistory.push({ id: ++id, cae: cae, date: Moment(nextFinYear).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, nextFinYear) });
         }
         //  caeHistory.forEach(h => console.log(`id: ${h.id}, cae: ${h.cae}, lhc: ${h.lhc}, date: ${Moment(h.date).format('DD MMM YYYY')}\n`));
         setCaeHistory(caeHistory);
@@ -197,7 +206,7 @@ const Calculator = (props) => {
             <ExampleSet limit={1} setFirstDate={handleDOB} setSecondDate={handleAppDate} startDate={dob} endDate={appDate} />
             <Keypad onClick={handleAddRemoveCoverDates} />
             <div>{renderPickers(limit)}</div>
-            <div style={{ width: '30%' }}><BasicTable2 data={caeHistory} /></div>
+            <div style={{ width: '400px' }}><BasicTable2 data={caeHistory} /></div>
         </div>
     );
 }
