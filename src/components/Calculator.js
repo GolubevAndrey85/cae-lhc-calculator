@@ -27,13 +27,15 @@ const Calculator = (props) => {
 
 
     const handleAddRemoveCoverDates = (value) => {
-        if (limit === 0) return;
+        if (limit === 0 && value < 0) return;
         setLimit(limit + value);
+        const newCoverDates = new Map(prevCoverDates);
         if (value < 0) {
-            const newCoverDates = new Map(prevCoverDates);
             newCoverDates.delete(limit - 1);
-            setPrevCoverDates(newCoverDates);
+        } else {
+            newCoverDates.set(limit, [new Date(defaultStartDate), new Date(defaultEndDate)]);
         }
+        setPrevCoverDates(newCoverDates);
     };
 
 
