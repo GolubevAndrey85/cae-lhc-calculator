@@ -1,4 +1,6 @@
 import React from "react";
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -10,11 +12,10 @@ class Keypad extends React.Component {
   render() {
     return (
       <div className="keypad">
-        {/* keypad buttons */}
-        <button onClick={() => this.handleClick(1)}>Add</button>
-        <button onClick={() => this.handleClick(-1)}>Remove</button>
-        {/* <button onClick={() => this.handleClick(3)}>3</button> */}
-        {/* and so on */}
+        <Stack spacing={3} direction="row" alignItems="center">
+          <Button variant="contained" onClick={() => this.handleClick(1)}>Add</Button>
+          <Button variant="outlined" onClick={() => this.handleClick(-1)}>Remove</Button>
+        </Stack>
       </div>
     );
   }

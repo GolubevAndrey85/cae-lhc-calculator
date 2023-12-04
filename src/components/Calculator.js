@@ -193,7 +193,7 @@ const Calculator = (props) => {
         for (let i = 0; i < limit; i++) {
             prevCoverDetails.push(
                 <div key={i}>
-                    <ExampleSet limit={limit} i={i} setFirstDate={handleCoverStartDate} setSecondDate={handleCoverEndDate} startDate={new Date(defaultStartDate)} endDate={new Date(defaultEndDate)} />
+                    <ExampleSet labelFirst={`#${i}: Hospital cover start date`} labelSecond={`#${i}: Hospital cover end date`} limit={limit} i={i} setFirstDate={handleCoverStartDate} setSecondDate={handleCoverEndDate} startDate={new Date(defaultStartDate)} endDate={new Date(defaultEndDate)} />
                 </div>
             );
         }
@@ -205,7 +205,7 @@ const Calculator = (props) => {
     return (
         <div className="calculator">
             <Display value={cae} dob30={years30Dob} />
-            <ExampleSet limit={1} setFirstDate={handleDOB} setSecondDate={handleAppDate} startDate={dob} endDate={appDate} />
+            <ExampleSet labelFirst={'Date of Birth'} labelSecond={'Application date'} limit={1} setFirstDate={handleDOB} setSecondDate={handleAppDate} startDate={dob} endDate={appDate} />
             <Keypad onClick={handleAddRemoveCoverDates} />
             <div>{renderPickers(limit)}</div>
             <div style={{ width: '400px' }}><BasicTable2 data={caeHistory} /></div>

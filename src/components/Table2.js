@@ -13,7 +13,7 @@ const columns = [
 const BasicTable2 = (props) => {
   // props.data.forEach(h => console.log(`in table === id: ${h.id}, cae: ${h.cae}, lhc: ${h.lhc}, date: ${Moment(h.date).format('DD MMM YYYY')}\n`));
     return (
-        <div style={{ height: 'auto', width: '100%' }}>
+        <div style={{ height: 'auto', width: '100%', marginTop: '20px'}}>
           <DataGrid
             rows={props.data}
             columns={columns}
