@@ -8,6 +8,7 @@ const columns = [
     { field: 'cae', headerName: 'CAE', width: 70 },
     { field: 'age', headerName: 'Age', width: 70 },
     { field: 'lhc', headerName: 'LHC', width: 70 },
+    { field: 'doa', headerName: 'DOA', width: 70 },
   ];
 
 const BasicTable2 = (props) => {

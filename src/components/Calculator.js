@@ -11,6 +11,7 @@ const Calculator = (props) => {
     const defaultAppDate = new Date('2023-09-01');
     const defaultStartDate = '2005-01-01';
     const defaultEndDate = '2010-01-01';
+    const daysOfAbsence = 1094;
     const get30BirthDate = (dob) => {
         let dob30 = new Date(dob);
         dob30.setFullYear(dob.getFullYear() + 30);
@@ -24,6 +25,7 @@ const Calculator = (props) => {
     const [cae, setCae] = useState(30);
     const [years30Dob, setYears30Dob] = useState(get30BirthDate(defaultDOB));
     const [caeHistory, setCaeHistory] = useState([]);
+    const [daysOfAbsenceLeft, setDaysOfAbsenceLeft] = useState(daysOfAbsence);
 
 
     const handleAddRemoveCoverDates = (value) => {
@@ -48,6 +50,11 @@ const Calculator = (props) => {
         return diff;
     }
 
+    const calculateDiffInDays = (start, end) => {
+        let Difference_In_Time = end.getTime() - start.getTime();
+        return Math.round(Difference_In_Time / (1000 * 3600 * 24));
+    }
+
 
     const handleDOB = (date, i) => {
         setYears30Dob(get30BirthDate(date));
@@ -62,7 +69,6 @@ const Calculator = (props) => {
 
     const handleCoverStartDate = (date, i) => {
         let temp = prevCoverDates;
-        // setPrevCoverDates(null);
         if (temp.has(i)) {
             temp.set(i, [new Date(date), temp.get(i)[1]]);
         } else {
@@ -74,7 +80,6 @@ const Calculator = (props) => {
 
     const handleCoverEndDate = (date, i) => {
         let temp = prevCoverDates;
-        // setPrevCoverDates(null);
         if (temp.has(i)) {
             temp.set(i, [temp.get(i)[0], new Date(date)]);
         } else {
@@ -122,16 +127,19 @@ const Calculator = (props) => {
         let isCovered = false;
         var incrementCAE = true;
         var nextFinYear = getNextFinYearStartDate(years30Dob);
+        var lastDateOfPreviousCover;
+        var doal = daysOfAbsence;
+        var daysInCoverIncludingAllowedGaps = 0;
         var caeHistory = [
-            { id: ++id, cae: cae, date: Moment(dob).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, dob) },
-            { id: ++id, cae: cae, date: Moment(years30Dob).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, years30Dob) }
+            { id: ++id, cae: cae, date: Moment(dob).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, dob), doa: daysOfAbsence},
+            { id: ++id, cae: cae, date: Moment(years30Dob).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, years30Dob), doa: daysOfAbsence }
         ];
 
         if (years30Dob.getDate() === 1 && years30Dob.getMonth() === 6) {
-            caeHistory.push({ id: ++id, cae: cae++, date: Moment(new Date(nextFinYear)).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, nextFinYear) });
+            caeHistory.push({ id: ++id, cae: cae++, date: Moment(new Date(nextFinYear)).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, nextFinYear), doa: daysOfAbsence });
         }
 
-        console.log(`prev cover hist size ${prevCoverDates.size}`);
+        // console.log(`prev cover hist size ${prevCoverDates.size}`);
         for (let i = 0; i < 50; i++) {
             nextFinYear = getNextFinYearStartDate(nextFinYear);
             const coverDatesFind = Array.from(prevCoverDates).filter(v => v[1][0] && v[1][1] && v[1][0] < nextFinYear && nextFinYear < v[1][1]);
@@ -145,12 +153,14 @@ const Calculator = (props) => {
                 });
                 starts.sort();
                 ends.sort();
-                coverDatesFinal = [starts[0], ends[ends.length - 1]];
+                coverDatesFinal = [starts[0], ends[ends.length - 1], calculateDiffInDays(starts[0], ends[ends.length - 1])];
             } else {
-                coverDatesFinal = coverDatesFind && coverDatesFind[0] && coverDatesFind[0][1];
+                coverDatesFinal = coverDatesFind && coverDatesFind[0] && [...coverDatesFind[0][1], calculateDiffInDays(coverDatesFind[0][1][0], coverDatesFind[0][1][1])];
             }
-            coverDatesFinal?.forEach(() => console.log(`coverDatesFinal[0]: ${Moment(new Date(coverDatesFinal[0])).format('DD MMM YYYY')}, coverDatesFinal[1]: ${Moment(new Date(coverDatesFinal[1])).format('DD MMM YYYY')}`));
+            coverDatesFinal?.forEach(() => console.log(`coverDatesFinal[0]: ${Moment(new Date(coverDatesFinal[0])).format('DD MMM YYYY')}, coverDatesFinal[1]: ${Moment(new Date(coverDatesFinal[1])).format('DD MMM YYYY')}, days: ${calculateDiffInDays(new Date(coverDatesFinal[0]), new Date(coverDatesFinal[1]))}, days2: ${coverDatesFinal[2]}`));
+            
             if (coverDatesFinal) {
+                lastDateOfPreviousCover = coverDatesFinal[1];
                 isCovered = coverDatesFinal[0] && coverDatesFinal[1] && coverDatesFinal[0] < nextFinYear && nextFinYear < coverDatesFinal[1];
                 // Holding for 10+ years
                 if (isCovered && calculateDiffInYears(coverDatesFinal[0], coverDatesFinal[1]) >= 10) {
@@ -158,12 +168,24 @@ const Calculator = (props) => {
                     lastDayOf10PlusYearsCover = coverDatesFinal[1];
                     incrementCAE = false;
                 }
+
             }
             // Hold for 10+ years, but cancelled and gap is > 3 years
             if (lastDayOf10PlusYearsCover && calculateDiffInYears(lastDayOf10PlusYearsCover, nextFinYear) >= 3) {
                 cae = 30;
                 lastDayOf10PlusYearsCover = null;
                 incrementCAE = true;
+            }
+
+            if (!isCovered && lastDateOfPreviousCover) {
+                doal = doal - calculateDiffInDays(lastDateOfPreviousCover, nextFinYear);
+                setDaysOfAbsenceLeft(doal);
+                // incrementCAE = false;
+                if (doal <= 0) {
+                    // incrementCAE = true;
+                    doal = 0;
+                    setDaysOfAbsenceLeft(0);
+                }
             }
             
             // !isCovered - Your loading % will lock-in when you insure yourself with an eligible policy. It will not go up by another 2% every year as long as you are holding cover.
@@ -177,13 +199,13 @@ const Calculator = (props) => {
             if (cae < 30) cae = 30;
             if (cae > 70) cae = 70;
             isCovered = false;
-            caeHistory.push({ id: ++id, cae: cae, date: Moment(nextFinYear).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, nextFinYear) });
+            caeHistory.push({ id: ++id, cae: cae, date: Moment(nextFinYear).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, nextFinYear), doa: doal });
         }
         //  caeHistory.forEach(h => console.log(`id: ${h.id}, cae: ${h.cae}, lhc: ${h.lhc}, date: ${Moment(h.date).format('DD MMM YYYY')}\n`));
         setCaeHistory(caeHistory);
         const prevFinYear = getPrevFinYearStartDate(appDate);
         const dataAtAppDate = Array.from(caeHistory).find(v => v.date === Moment(prevFinYear).format('DD MMM YYYY'));
-        console.log(`---------> CAE app date: ${dataAtAppDate.cae}`);
+        // console.log(`---------> CAE app date: ${dataAtAppDate.cae}`);
         setCae(dataAtAppDate?.cae);
     }, [prevCoverDates, dob, appDate, years30Dob]);
 
@@ -208,7 +230,7 @@ const Calculator = (props) => {
             <ExampleSet labelFirst={'Date of Birth'} labelSecond={'Application date'} limit={1} setFirstDate={handleDOB} setSecondDate={handleAppDate} startDate={dob} endDate={appDate} />
             <Keypad onClick={handleAddRemoveCoverDates} />
             <div>{renderPickers(limit)}</div>
-            <div style={{ width: '400px' }}><BasicTable2 data={caeHistory} /></div>
+            <div style={{ width: '500px' }}><BasicTable2 data={caeHistory} /></div>
         </div>
     );
 }
