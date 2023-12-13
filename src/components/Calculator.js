@@ -22,6 +22,8 @@ const Calculator = (props) => {
     const [dob, setDob] = useState(defaultDOB);
     const [appDate, setAppDate] = useState(defaultAppDate);
     const [prevCoverDates, setPrevCoverDates] = useState(new Map().set(0, [new Date(defaultStartDate), new Date(defaultEndDate)]));
+    // const [prevCoverDates2, setPrevCoverDates2] = useState(new Map().set(0, {start: new Date(defaultStartDate), end: new Date(defaultEndDate), 
+    //     days: calculateDiffInDays(new Date(defaultStartDate), new Date(defaultEndDate)), previousGap: calculateDiffInDays(new Date(get30BirthDate(defaultDOB)), new Date(defaultStartDate))}));
     const [cae, setCae] = useState(30);
     const [years30Dob, setYears30Dob] = useState(get30BirthDate(defaultDOB));
     const [caeHistory, setCaeHistory] = useState([]);
@@ -117,6 +119,41 @@ const Calculator = (props) => {
         }
         return nextDate;
     }
+
+    // const sortAndFilterCoverDates = (dates) => {
+    //     const coverDatesFind = Array.from(dates).filter(v => v[1][0] && v[1][1] && v[1][0] < nextFinYear && nextFinYear < v[1][1]);
+    //     let coverDatesFinal = [];
+    //     if (coverDatesFind.length > 1) {
+    //         const starts = [];
+    //         const ends = [];
+    //         coverDatesFind.forEach(d => {
+    //             starts.push(d[1][0]);
+    //             ends.push(d[1][1]);
+    //         });
+    //         starts.sort();
+    //         ends.sort();
+    //         coverDatesFinal = [starts[0], ends[ends.length - 1], calculateDiffInDays(starts[0], ends[ends.length - 1])];
+    //     } else {
+    //         coverDatesFinal = coverDatesFind && coverDatesFind[0] && [...coverDatesFind[0][1], calculateDiffInDays(coverDatesFind[0][1][0], coverDatesFind[0][1][1])];
+    //     }
+    // }
+
+    useEffect(() => {
+        const res = new Map();
+        const arr =  Array.from(prevCoverDates);
+        arr.forEach((d, i) => {
+            res.set(i, {start: new Date(d[1][0]), end: new Date(d[1][1]), days: calculateDiffInDays(new Date(d[1][0]), new Date(d[1][1])), 
+                previousGap: calculateDiffInDays(new Date(i === 0 ? get30BirthDate(defaultDOB) : arr(i-1)[1][1]), new Date(d[1][0]))})
+        });
+        // var caeHistory = [
+        //     { id: ++id, cae: cae, date: Moment(dob).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, dob), doa: daysOfAbsence},
+        //     { id: ++id, cae: cae, date: Moment(years30Dob).format('DD MMM YYYY'), lhc: (cae - 30) * 2, age: calculateDiffInYears(dob, years30Dob), doa: daysOfAbsence }
+        // ];
+        // for (let i = 0; i < 50; i++) {s
+        //     nextFinYear = getNextFinYearStartDate(nextFinYear);
+        console.log('---- Dates: ', res);
+        // }
+    }, [prevCoverDates, dob, appDate, years30Dob]);
 
 
     useEffect(() => {
